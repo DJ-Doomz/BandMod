@@ -71,7 +71,7 @@ float BandMod::process(float s)
     // apply gain & clipping & write to buffers
     for (int i = 0; i < 4; i++)
     {
-        bs[i] = jlimit(-1.f, 1.f, bs[i] * preGain[i])*postGain[i];
+        bs[i] = jlimit(-1.f, 1.f, bs[i] * preGain[i]);
         // add in feedback
         bs[i] += hp[i].processSample(jlimit(-1.f, 1.f, delayBuffers[i].get(1 + feedbackDelay[i] * 40000) * feedbackAmt[i]));
         hp[i].snapToZero();
@@ -85,7 +85,7 @@ float BandMod::process(float s)
         bs[i] = fmBuffers[i].get(fmAmt[i] + fmAmt[i] * sin(transpose * phase * MathConstants<float>::pi));
         delayBuffers[i].put(bs[i]);
 
-        o += bs[i];
+        o += bs[i] * postGain[i];
     }
 
     // also output the tracked pitch for debugging
