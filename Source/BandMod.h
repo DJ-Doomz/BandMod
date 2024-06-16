@@ -25,22 +25,22 @@ public:
         feedbackAmt{0,0,0,0},
         feedbackDelay{0,0,0,0},
         targetfeedbackDelay{ 0,0,0,0 },
-        phase(0)
+        phase(0),
+        bandFreqs{ 200, 1000, 5000 }
     {
         //assuming 48k samplerate for now bcz whatever
         filters[LP1].setType(dsp::LinkwitzRileyFilterType::lowpass);
-        filters[LP1].setCutoffFrequency(1000);
+        filters[LP1].setCutoffFrequency(bandFreqs[1]);
         filters[HP1].setType(dsp::LinkwitzRileyFilterType::highpass);
-        filters[HP1].setCutoffFrequency(1000);
+        filters[HP1].setCutoffFrequency(bandFreqs[1]);
         filters[LP2].setType(dsp::LinkwitzRileyFilterType::lowpass);
-        filters[LP2].setCutoffFrequency(200);
+        filters[LP2].setCutoffFrequency(bandFreqs[0]);
         filters[HP2].setType(dsp::LinkwitzRileyFilterType::highpass);
-        filters[HP2].setCutoffFrequency(200);
+        filters[HP2].setCutoffFrequency(bandFreqs[0]);
         filters[LP3].setType(dsp::LinkwitzRileyFilterType::lowpass);
-        filters[LP3].setCutoffFrequency(5000);
+        filters[LP3].setCutoffFrequency(bandFreqs[2]);
         filters[HP3].setType(dsp::LinkwitzRileyFilterType::highpass);
-        filters[HP3].setCutoffFrequency(5000);
-
+        filters[HP3].setCutoffFrequency(bandFreqs[2]);
     };
 
     void BandMod::prepare(juce::dsp::ProcessSpec& s);
@@ -72,6 +72,17 @@ public:
         targetfeedbackDelay[band] = p;
     }
 
+    void setBandFreq(int band, int f)
+    {
+        bandFreqs[band] = f;
+        filters[LP1].setCutoffFrequency(bandFreqs[1]);
+        filters[HP1].setCutoffFrequency(bandFreqs[1]);
+        filters[LP2].setCutoffFrequency(bandFreqs[0]);
+        filters[HP2].setCutoffFrequency(bandFreqs[0]);
+        filters[LP3].setCutoffFrequency(bandFreqs[2]);
+        filters[HP3].setCutoffFrequency(bandFreqs[2]);
+    }
+
 private:
 
     pitchTracker pt;
@@ -80,6 +91,8 @@ private:
 
     CircularBuffer fmBuffers[4];
     CircularBuffer delayBuffers[4];
+
+    int bandFreqs[3];
 
     juce::dsp::IIR::Filter<float> hp[4];
     dsp::LinkwitzRileyFilter<float> filters[6];

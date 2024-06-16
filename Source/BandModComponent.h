@@ -123,7 +123,9 @@ public:
         {
             addAndMakeVisible(bands[i]);
         }
-        
+        addAndMakeVisible(lowFreqSlider);
+        addAndMakeVisible(midFreqSlider);
+        addAndMakeVisible(highFreqSlider);
     }
 
     ~BandModComponent() override
@@ -155,6 +157,10 @@ public:
         {
             bands[i].addAttachment(vts, i);
         }
+
+        lowFreqAttachment.reset(new SliderAttachment(vts, "LowFreq", lowFreqSlider.getSlider()));
+        midFreqAttachment.reset(new SliderAttachment(vts, "MidFreq", midFreqSlider.getSlider()));
+        highFreqAttachment.reset(new SliderAttachment(vts, "HighFreq", highFreqSlider.getSlider()));
     }
 
     void resized() override
@@ -162,6 +168,16 @@ public:
         // This method is where you should set the bounds of any child
         // components that your component contains..
         auto r = getLocalBounds();
+        auto t = r.removeFromTop(100);
+        auto w = t.getWidth() / 8;
+        auto stamp1 = t.removeFromLeft(w);
+        stamp1.translate(w * 1.5, 0);
+        lowFreqSlider.setBounds(stamp1);
+        stamp1.translate(w * 2, 0);
+        midFreqSlider.setBounds(stamp1);
+        stamp1.translate(w * 2, 0);
+        highFreqSlider.setBounds(stamp1);
+
         auto stamp = r.removeFromLeft(r.getWidth() / 4);
         for (int i = 0; i < 4; i++)
         {
@@ -171,6 +187,13 @@ public:
     }
 
 private:
+    SliderAndLabel lowFreqSlider{ "LowFreq" },
+        midFreqSlider{ "MidFreq" },
+        highFreqSlider{ "HighFreq" };
+
+    std::unique_ptr<SliderAttachment> lowFreqAttachment,
+        midFreqAttachment,
+        highFreqAttachment;
     BandComponent bands[4];
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BandModComponent)

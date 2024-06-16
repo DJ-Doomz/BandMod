@@ -19,6 +19,7 @@ BandModAudioProcessorEditor::BandModAudioProcessorEditor (BandModAudioProcessor&
     setSize (700, 700);
     setResizable(true, true);
     addAndMakeVisible(BMC);
+    setResizeLimits(300, 300, 2000, 2000);
     BMC.addAttachment(vts);
 }
 

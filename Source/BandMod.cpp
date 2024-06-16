@@ -49,7 +49,7 @@ float BandMod::process(float s)
     if (tracked < 0) tracked = 0;
     float d = (0.3183098f * tracked)/2.0;
     phase += d;
-    phase = modf(phase, &trash);
+    phase = 8.*modf(phase/8.0, &trash);
 
     // add feedback from each band
     /*
