@@ -224,6 +224,7 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     juce::dsp::AudioBlock<float> block(buffer);
 
     dsp::ProcessContextReplacing<float> ctx(block);
+    //doing this high-pass causes it to crash for some reason????
     //hp.process(ctx);
     limiter.process(ctx);
 }
