@@ -133,13 +133,13 @@ void BandModAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     juce::dsp::ProcessSpec spec_stereo;
 
     spec_stereo.maximumBlockSize = samplesPerBlock;
-    spec_stereo.numChannels = 2;
+    spec_stereo.numChannels = getTotalNumOutputChannels();
     spec_stereo.sampleRate = sampleRate;
 
     // set up master highpass
 
     hp.prepare(spec_stereo);
-    hp.state = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 20);
+    *hp.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 20);
     
     // set up master limiter
 
@@ -225,7 +225,7 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
 
     dsp::ProcessContextReplacing<float> ctx(block);
     //doing this high-pass causes it to crash for some reason????
-    //hp.process(ctx);
+    hp.process(ctx);
     limiter.process(ctx);
 }
 
@@ -244,15 +244,18 @@ juce::AudioProcessorEditor* BandModAudioProcessor::createEditor()
 //==============================================================================
 void BandModAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
 void BandModAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(apvts.state.getType()))
+            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 //==============================================================================
