@@ -1,2 +1,0 @@
-# BandMod
-weirdo vst
