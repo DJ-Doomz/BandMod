@@ -18,7 +18,7 @@
 class BandModAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    BandModAudioProcessorEditor (BandModAudioProcessor&, juce::AudioProcessorValueTreeState& );
+    BandModAudioProcessorEditor (BandModAudioProcessor&, juce::AudioProcessorValueTreeState& , BandMod&);
     ~BandModAudioProcessorEditor() override;
 
     //==============================================================================

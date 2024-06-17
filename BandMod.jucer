@@ -4,6 +4,8 @@
               addUsingNamespaceToJuceHeader="1" jucerFormatVersion="1">
   <MAINGROUP id="kd5pf6" name="BandMod">
     <GROUP id="{D1ED9F67-1DA3-E097-4751-4C1C5D84CBE5}" name="Source">
+      <FILE id="t3q7fU" name="BandGraphComponent.h" compile="0" resource="0"
+            file="Source/BandGraphComponent.h"/>
       <FILE id="C1hJAG" name="myButton.h" compile="0" resource="0" file="Source/myButton.h"/>
       <FILE id="yCMDvX" name="myDrawableButton.h" compile="0" resource="0"
             file="Source/myDrawableButton.h"/>

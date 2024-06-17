@@ -11,8 +11,8 @@
 
 
 //==============================================================================
-BandModAudioProcessorEditor::BandModAudioProcessorEditor (BandModAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
-    : AudioProcessorEditor (&p), audioProcessor (p), valueTreeState(vts)
+BandModAudioProcessorEditor::BandModAudioProcessorEditor (BandModAudioProcessor& p, juce::AudioProcessorValueTreeState& vts, BandMod& bm)
+    : AudioProcessorEditor (&p), audioProcessor (p), valueTreeState(vts), BMC(p, bm)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.

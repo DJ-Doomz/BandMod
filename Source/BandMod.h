@@ -78,6 +78,8 @@ public:
         feedbackDelay{0,0,0,0},
         targetfeedbackDelay{ 0,0,0,0 },
         phase(0),
+        d(0),
+        sampleRate(48000),
         bandFreqs{ 200, 1000, 5000 }
     {
         //assuming 48k samplerate for now bcz whatever
@@ -127,14 +129,27 @@ public:
         update_band_freqs();
     }
 
+    // returns estimated pitch in hertz
+    float getTrackedPitch()
+    {
+        return d*sampleRate;
+    }
+
 private:
+    // pitch tracking
     pitchTracker pt;
-    float phase;
+    float phase, d;
+    double sampleRate;
+    const float transpose_amts[9] = { .125, .25, .5, .75, 1, 2, 3, 4, 8 };
+
+    // params
     float preGain[4], postGain[4], fmAmt[4], targetfmAmt[4], fmPitch[4], feedbackDelay[4], targetfeedbackDelay[4], feedbackAmt[4];
 
+    // buffers
     CircularBuffer fmBuffers[4];
     CircularBuffer delayBuffers[4];
 
+    // filters
     int bandFreqs[3];
 
     juce::dsp::IIR::Filter<float> hp[4];
@@ -143,6 +158,7 @@ private:
 
     const static int numFilters = 6;
 
+    // helper functions
     float smoothit(float x, float targetx, float smooth)
     {
         return smooth * x + (1 - smooth) * targetx;
@@ -171,5 +187,4 @@ private:
         }
     }
 
-    const float transpose_amts[9] = { .125, .25, .5, .75, 1, 2, 3, 4, 8 };
 };

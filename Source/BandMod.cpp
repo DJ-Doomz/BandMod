@@ -23,6 +23,8 @@ void BandMod::prepare(juce::dsp::ProcessSpec& s)
         hp[i].prepare(s);
         hp[i].coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(s.sampleRate, 10);
     }
+
+    sampleRate = s.sampleRate;
 }
 
 float BandMod::process(float s)
@@ -47,7 +49,7 @@ float BandMod::process(float s)
     float tracked = pt.getPitch(s);
 
     if (tracked < 0) tracked = 0;
-    float d = (0.3183098f * tracked)/2.0;
+    d = (0.3183098f * tracked)/2.0;
     phase += d;
     phase = 8.*modf(phase/8.0, &trash);
 

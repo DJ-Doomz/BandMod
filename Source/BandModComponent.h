@@ -17,6 +17,7 @@
 #include "myDrawableButton.h"
 #include "myLookAndFeel.h"
 #include "myButton.h"
+#include "BandGraphComponent.h"
 
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
@@ -115,7 +116,7 @@ private:
 class BandModComponent  : public juce::Component
 {
 public:
-    BandModComponent()
+    BandModComponent(BandModAudioProcessor& p, BandMod& b) : processor(p), bm(b), bandGraphComponent(p, b)
     {
         // In your constructor, you should add any child components, and
         // initialise any special settings that your component needs.
@@ -126,6 +127,7 @@ public:
         addAndMakeVisible(lowFreqSlider);
         addAndMakeVisible(midFreqSlider);
         addAndMakeVisible(highFreqSlider);
+        addAndMakeVisible(bandGraphComponent);
     }
 
     ~BandModComponent() override
@@ -168,6 +170,9 @@ public:
         // This method is where you should set the bounds of any child
         // components that your component contains..
         auto r = getLocalBounds();
+        auto bg = r.removeFromTop(r.getHeight() / 3);
+        bandGraphComponent.setBounds(bg);
+
         auto t = r.removeFromTop(100);
         auto w = t.getWidth() / 8;
         auto stamp1 = t.removeFromLeft(w);
@@ -187,6 +192,9 @@ public:
     }
 
 private:
+    BandModAudioProcessor& processor;
+    BandMod& bm;
+
     SliderAndLabel lowFreqSlider{ "LowFreq" },
         midFreqSlider{ "MidFreq" },
         highFreqSlider{ "HighFreq" };
@@ -195,6 +203,8 @@ private:
         midFreqAttachment,
         highFreqAttachment;
     BandComponent bands[4];
+
+    BandGraphComponent bandGraphComponent;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BandModComponent)
 };

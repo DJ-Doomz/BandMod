@@ -244,7 +244,7 @@ bool BandModAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* BandModAudioProcessor::createEditor()
 {
     //return new GenericAudioProcessorEditor(*this);
-    return new BandModAudioProcessorEditor (*this, apvts);
+    return new BandModAudioProcessorEditor (*this, apvts, bm[0]);
 }
 
 //==============================================================================
