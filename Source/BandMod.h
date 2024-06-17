@@ -17,9 +17,10 @@ enum FilterNames { LP1 = 0, HP1 = 1, LP2 = 2, HP2 = 3, LP3 = 4, HP3 = 5};
 
 class BandMod {
 public:
-    BandMod() : 
-        preGain{ 1,1,1,1 }, 
-        postGain{ 1,1,1,1 }, 
+    BandMod() :
+        preGain{ 1,1,1,1 },
+        postGain{ 1,1,1,1 },
+        targetfmAmt{ 0,0,0,0 },
         fmAmt{ 0,0,0,0 }, 
         fmPitch{0,0,0,0}, 
         feedbackAmt{0,0,0,0},
@@ -56,7 +57,7 @@ public:
     }
 
     void setfmAmt(int band, float p) {
-        fmAmt[band] = p;
+        targetfmAmt[band] = p;
     }
 
     void setfeedbackAmt(int band, float p) {
@@ -87,7 +88,7 @@ private:
 
     pitchTracker pt;
     float phase;
-    float preGain[4], postGain[4], fmAmt[4], fmPitch[4], feedbackDelay[4], targetfeedbackDelay[4], feedbackAmt[4];
+    float preGain[4], postGain[4], fmAmt[4], targetfmAmt[4], fmPitch[4], feedbackDelay[4], targetfeedbackDelay[4], feedbackAmt[4];
 
     CircularBuffer fmBuffers[4];
     CircularBuffer delayBuffers[4];
@@ -98,12 +99,18 @@ private:
     dsp::LinkwitzRileyFilter<float> filters[6];
     const static int numFilters = 6;
 
-    void update_feedback_times()
+    float smoothit(float x, float targetx, float smooth)
     {
-        const float smooth = .9999;
+        return smooth * x + (1 - smooth) * targetx;
+    }
+
+    void update_params()
+    {
         for (int i = 0; i < 4; i++)
         {
-            feedbackDelay[i] = smooth * feedbackDelay[i] + (1 - smooth) * targetfeedbackDelay[i];
+            feedbackDelay[i] = smoothit(feedbackDelay[i], targetfeedbackDelay[i], .9999);
+            //feedbackDelay[i] = smooth * feedbackDelay[i] + (1 - smooth) * targetfeedbackDelay[i];
+            fmAmt[i] = smoothit(fmAmt[i], targetfmAmt[i], .999);
         }
     }
 

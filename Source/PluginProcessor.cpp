@@ -24,8 +24,8 @@ AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         auto fmpitchname = String("fmPitch") + stri;
         auto delaytimename = String("delaytime") + stri;
         layout.add(std::make_unique<juce::AudioParameterFloat>(fmname, fmname, juce::NormalisableRange<float>(0, 1000, 0), 0.0f));
-        layout.add(std::make_unique<juce::AudioParameterFloat>(prename, prename, juce::NormalisableRange<float>(0, 100, 0), 1.0f));
-        layout.add(std::make_unique<juce::AudioParameterFloat>(postname, postname, juce::NormalisableRange<float>(0, 8, 0), 1.0f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(prename, prename, juce::NormalisableRange<float>(0, 1000, 0), 1.0f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(postname, postname, juce::NormalisableRange<float>(0, 2, 0), 1.0f));
         layout.add(std::make_unique<juce::AudioParameterFloat>(feedbkname, feedbkname, juce::NormalisableRange<float>(0, 1.1, 0), 0.0f));
         layout.add(std::make_unique<juce::AudioParameterFloat>(fmpitchname, fmpitchname, juce::NormalisableRange<float>(0, 1, 0), 0.5f));
         layout.add(std::make_unique<juce::AudioParameterFloat>(delaytimename, delaytimename, juce::NormalisableRange<float>(0, 1, 0), 0.f));

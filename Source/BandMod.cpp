@@ -41,7 +41,7 @@ float BandMod::process(float s)
     double trash;   //unused garbage
     float o = 0;
     float bs[4] = { 0,0,0,0 };  // for keeping track of each band's processing
-    update_feedback_times();
+    update_params();
     
     // pitch tracking stuff
     float tracked = pt.getPitch(s);
