@@ -61,12 +61,12 @@ float BandMod::process(float s)
 
     //filter into different bands
     float tmp = 0;
-    tmp = filters[HP1].processSample(0, s);
-    bs[3] = filters[HP3].processSample(0, tmp);
-    bs[2] = filters[LP3].processSample(0, tmp);
-    tmp = filters[LP1].processSample(0, s);
-    bs[0] = filters[LP2].processSample(0, tmp);
-    bs[1] = filters[HP2].processSample(0, tmp);
+    tmp = filters[HP1].processSample(s);
+    bs[3] = filters[HP3].processSample(tmp);
+    bs[2] = filters[LP3].processSample(tmp);
+    tmp = filters[LP1].processSample(s);
+    bs[0] = filters[LP2].processSample(tmp);
+    bs[1] = filters[HP2].processSample(tmp);
 
     // apply gain & clipping & write to buffers
     for (int i = 0; i < 4; i++)
