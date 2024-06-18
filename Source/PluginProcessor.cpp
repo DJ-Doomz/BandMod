@@ -49,7 +49,9 @@ BandModAudioProcessor::BandModAudioProcessor()
                      #endif
                        )
 #endif
-    , apvts(*this, nullptr, "STATE", createParameterLayout())
+    , apvts(*this, nullptr, "STATE", createParameterLayout()),
+    fifo{ 0 },
+    fftData{ 0 }
 {
 }
 
@@ -223,6 +225,8 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
             auto* ptrOut = buffer.getWritePointer(channel);
             auto* ptrIn = buffer.getReadPointer(channel);
             ptrOut[j] = bm[channel].process(ptrIn[j]);
+            if (channel == 0)
+                pushNextSampleIntoFifo(ptrIn[j]);
         }
     }
 
@@ -233,6 +237,7 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     //doing this high-pass causes it to crash for some reason????
     hp.process(ctx);
     limiter.process(ctx);
+
 }
 
 //==============================================================================
