@@ -116,7 +116,10 @@ private:
 class BandModComponent  : public juce::Component
 {
 public:
-    BandModComponent(BandModAudioProcessor& p, BandMod& b) : processor(p), bm(b), bandGraphComponent(p, b)
+    BandModComponent(BandModAudioProcessor& p, BandMod& b) : processor(p),
+        bm(b),
+        bandGraphComponent(p, b),
+        modeButton("FB Mode")
     {
         // In your constructor, you should add any child components, and
         // initialise any special settings that your component needs.
@@ -131,6 +134,7 @@ public:
         addAndMakeVisible(midOrderSlider);
         addAndMakeVisible(highOrderSlider);
         addAndMakeVisible(bandGraphComponent);
+        addAndMakeVisible(modeButton);
 
         lowOrderSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
         midOrderSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
@@ -177,6 +181,8 @@ public:
         lowOrderAttachment.reset(new SliderAttachment(vts, "LowOrder", lowOrderSlider));
         midOrderAttachment.reset(new SliderAttachment(vts, "MidOrder", midOrderSlider));
         highOrderAttachment.reset(new SliderAttachment(vts, "HighOrder", highOrderSlider));
+
+        modeAttachment.reset(new ButtonAttachment(vts, "Mode", modeButton.getButton()));
     }
 
     void resized() override
@@ -205,6 +211,8 @@ public:
         smaller.translate(w * 2, 0);
         highFreqSlider.setBounds(stamp1);
         highOrderSlider.setBounds(smaller);
+        stamp1.translate(w*1.5, 0);
+        modeButton.setBounds(stamp1);
 
         auto stamp = r.removeFromLeft(r.getWidth() / 4);
         for (int i = 0; i < 4; i++)
@@ -225,12 +233,16 @@ private:
         midOrderSlider,
         highOrderSlider;
 
+    myButton modeButton;
+
     std::unique_ptr<SliderAttachment> lowFreqAttachment,
         midFreqAttachment,
         highFreqAttachment,
         lowOrderAttachment,
         midOrderAttachment,
         highOrderAttachment;
+        
+    std::unique_ptr<ButtonAttachment> modeAttachment;
     BandComponent bands[4];
 
     BandGraphComponent bandGraphComponent;

@@ -40,6 +40,8 @@ AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     layout.add(std::make_unique < juce::AudioParameterInt>("MidOrder", "MidOrder", 1, HigherOrderLRF::MAX_ORDER, 1));
     layout.add(std::make_unique < juce::AudioParameterInt>("HighOrder", "HighOrder", 1, HigherOrderLRF::MAX_ORDER, 1));
 
+    layout.add(std::make_unique < juce::AudioParameterBool>("Mode", "Mode", false));
+
     return layout;
 }
 
@@ -120,7 +122,7 @@ void BandModAudioProcessor::setCurrentProgram (int index)
 
 const juce::String BandModAudioProcessor::getProgramName (int index)
 {
-    return {};
+    return "empty";
 }
 
 void BandModAudioProcessor::changeProgramName (int index, const juce::String& newName)
@@ -225,6 +227,8 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
         bm[c].setOrder(0, *apvts.getRawParameterValue("LowOrder"));
         bm[c].setOrder(1, *apvts.getRawParameterValue("MidOrder"));
         bm[c].setOrder(2, *apvts.getRawParameterValue("HighOrder"));
+
+        bm[c].setFeedbackMode(*apvts.getRawParameterValue("Mode"));
     }
     ///// done with params
 

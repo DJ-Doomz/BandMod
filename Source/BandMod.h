@@ -91,15 +91,16 @@ public:
         preGain{ 1,1,1,1 },
         postGain{ 1,1,1,1 },
         targetfmAmt{ 0,0,0,0 },
-        fmAmt{ 0,0,0,0 }, 
-        fmPitch{0,0,0,0}, 
-        feedbackAmt{0,0,0,0},
-        feedbackDelay{0,0,0,0},
+        fmAmt{ 0,0,0,0 },
+        fmPitch{ 0,0,0,0 },
+        feedbackAmt{ 0,0,0,0 },
+        feedbackDelay{ 0,0,0,0 },
         targetfeedbackDelay{ 0,0,0,0 },
         phase(0),
         d(0),
         sampleRate(48000),
-        bandFreqs{ 200, 1000, 5000 }
+        bandFreqs{ 200, 1000, 5000 },
+        feedBackMode(0)
     {
         //assuming 48k samplerate for now bcz whatever
 
@@ -167,6 +168,11 @@ public:
         }
     }
 
+    void setFeedbackMode(int fb)
+    {
+        feedBackMode = fb;
+    }
+
     // returns estimated pitch in hertz
     float getTrackedPitch()
     {
@@ -182,6 +188,8 @@ private:
 
     // params
     float preGain[4], postGain[4], fmAmt[4], targetfmAmt[4], fmPitch[4], feedbackDelay[4], targetfeedbackDelay[4], feedbackAmt[4];
+    int feedBackMode;
+
 
     // buffers
     CircularBuffer fmBuffers[4];

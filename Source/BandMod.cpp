@@ -54,12 +54,13 @@ float BandMod::process(float s)
     phase = 8.*modf(phase/8.0, &trash);
 
     // add feedback from each band
-    /*
-    for (int i = 0; i < 4; i++)
+    if (feedBackMode == 1)
     {
-        s += delayBuffers[i].get(1 + feedbackDelay[i] * 40000) * feedbackAmt[i];
+        for (int i = 0; i < 4; i++)
+        {
+            s += delayBuffers[i].get(1 + feedbackDelay[i] * 40000) * feedbackAmt[i];
+        }
     }
-    */
 
     //filter into different bands
     float tmp = 0;
@@ -75,8 +76,11 @@ float BandMod::process(float s)
     {
         bs[i] = jlimit(-1.f, 1.f, bs[i] * preGain[i]);
         // add in feedback
-        bs[i] += hp[i].processSample(jlimit(-1.f, 1.f, delayBuffers[i].get(1 + feedbackDelay[i] * 40000) * feedbackAmt[i]));
-        hp[i].snapToZero();
+        if (feedBackMode == 0)
+        {
+            bs[i] += hp[i].processSample(jlimit(-1.f, 1.f, delayBuffers[i].get(1 + feedbackDelay[i] * 40000) * feedbackAmt[i]));
+            hp[i].snapToZero();
+        }
         fmBuffers[i].put(bs[i]);
     }
 
