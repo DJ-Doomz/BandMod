@@ -30,9 +30,15 @@ AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         layout.add(std::make_unique<juce::AudioParameterFloat>(fmpitchname, fmpitchname, juce::NormalisableRange<float>(0, 1, 0), 0.5f));
         layout.add(std::make_unique<juce::AudioParameterFloat>(delaytimename, delaytimename, juce::NormalisableRange<float>(0, 1, 0), 0.f));
     }
+    // band frequencies
     layout.add(std::make_unique < juce::AudioParameterInt>("LowFreq", "LowFreq", 0, 400, 200));
     layout.add(std::make_unique < juce::AudioParameterInt>("MidFreq", "MidFreq", 400, 3000, 1000));
     layout.add(std::make_unique < juce::AudioParameterInt>("HighFreq", "HighFreq", 3000, 20000, 5000));
+
+    //band orders
+    layout.add(std::make_unique < juce::AudioParameterInt>("LowOrder", "LowOrder", 1, HigherOrderLRF::MAX_ORDER, 1));
+    layout.add(std::make_unique < juce::AudioParameterInt>("MidOrder", "MidOrder", 1, HigherOrderLRF::MAX_ORDER, 1));
+    layout.add(std::make_unique < juce::AudioParameterInt>("HighOrder", "HighOrder", 1, HigherOrderLRF::MAX_ORDER, 1));
 
     return layout;
 }
@@ -215,6 +221,10 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
         bm[c].setBandFreq(0, *apvts.getRawParameterValue("LowFreq"));
         bm[c].setBandFreq(1, *apvts.getRawParameterValue("MidFreq"));
         bm[c].setBandFreq(2, *apvts.getRawParameterValue("HighFreq"));
+
+        bm[c].setOrder(0, *apvts.getRawParameterValue("LowOrder"));
+        bm[c].setOrder(1, *apvts.getRawParameterValue("MidOrder"));
+        bm[c].setOrder(2, *apvts.getRawParameterValue("HighOrder"));
     }
     ///// done with params
 

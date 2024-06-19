@@ -127,7 +127,17 @@ public:
         addAndMakeVisible(lowFreqSlider);
         addAndMakeVisible(midFreqSlider);
         addAndMakeVisible(highFreqSlider);
+        addAndMakeVisible(lowOrderSlider);
+        addAndMakeVisible(midOrderSlider);
+        addAndMakeVisible(highOrderSlider);
         addAndMakeVisible(bandGraphComponent);
+
+        lowOrderSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+        midOrderSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+        highOrderSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+        lowOrderSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        midOrderSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        highOrderSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     }
 
     ~BandModComponent() override
@@ -163,6 +173,10 @@ public:
         lowFreqAttachment.reset(new SliderAttachment(vts, "LowFreq", lowFreqSlider.getSlider()));
         midFreqAttachment.reset(new SliderAttachment(vts, "MidFreq", midFreqSlider.getSlider()));
         highFreqAttachment.reset(new SliderAttachment(vts, "HighFreq", highFreqSlider.getSlider()));
+
+        lowOrderAttachment.reset(new SliderAttachment(vts, "LowOrder", lowOrderSlider));
+        midOrderAttachment.reset(new SliderAttachment(vts, "MidOrder", midOrderSlider));
+        highOrderAttachment.reset(new SliderAttachment(vts, "HighOrder", highOrderSlider));
     }
 
     void resized() override
@@ -176,12 +190,21 @@ public:
         auto t = r.removeFromTop(100);
         auto w = t.getWidth() / 8;
         auto stamp1 = t.removeFromLeft(w);
+        auto smaller = stamp1.translated(w, 0);
+        smaller.setWidth(w / 2);
+        smaller.setHeight(w / 2);
         stamp1.translate(w * 1.5, 0);
+        smaller.translate(w * 1.5, 0);
         lowFreqSlider.setBounds(stamp1);
+        lowOrderSlider.setBounds(smaller);
         stamp1.translate(w * 2, 0);
+        smaller.translate(w * 2, 0);
         midFreqSlider.setBounds(stamp1);
+        midOrderSlider.setBounds(smaller);
         stamp1.translate(w * 2, 0);
+        smaller.translate(w * 2, 0);
         highFreqSlider.setBounds(stamp1);
+        highOrderSlider.setBounds(smaller);
 
         auto stamp = r.removeFromLeft(r.getWidth() / 4);
         for (int i = 0; i < 4; i++)
@@ -198,10 +221,16 @@ private:
     SliderAndLabel lowFreqSlider{ "LowFreq" },
         midFreqSlider{ "MidFreq" },
         highFreqSlider{ "HighFreq" };
+    SensitiveSlider lowOrderSlider,
+        midOrderSlider,
+        highOrderSlider;
 
     std::unique_ptr<SliderAttachment> lowFreqAttachment,
         midFreqAttachment,
-        highFreqAttachment;
+        highFreqAttachment,
+        lowOrderAttachment,
+        midOrderAttachment,
+        highOrderAttachment;
     BandComponent bands[4];
 
     BandGraphComponent bandGraphComponent;

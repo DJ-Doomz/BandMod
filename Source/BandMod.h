@@ -24,13 +24,15 @@ add options to change order (and maybe make the phases actually correct)
 class HigherOrderLRF
 {
 public:
-    HigherOrderLRF() {};
+    static const int MAX_ORDER = 4;
+    HigherOrderLRF():
+    order(1){};
 
     ~HigherOrderLRF() {};
 
     void setType(juce::dsp::LinkwitzRileyFilterType t)
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < MAX_ORDER; i++)
         {
             filters[i].setType(t);
         }
@@ -38,15 +40,18 @@ public:
 
     void setCutoffFrequency(float f)
     {
-        for (int i = 0; i < 3; i++)
+        if (f != filters[0].getCutoffFrequency())
         {
-            filters[i].setCutoffFrequency(f);
+            for (int i = 0; i < MAX_ORDER; i++)
+            {
+                filters[i].setCutoffFrequency(f);
+            }
         }
     }
 
     void prepare(const juce::dsp::ProcessSpec& ps)
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < MAX_ORDER; i++)
         {
             filters[i].prepare(ps);
         }
@@ -54,15 +59,29 @@ public:
 
     float processSample(float s)
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < order; i++)
         {
             s = filters[i].processSample(0, s);
+            filters[i].snapToZero();
         }
         return s;
     }
 
+    void setOrder(int o)
+    {
+        if (o != order)
+        {
+            order = o;
+            for (int i = 0; i < order; i++)
+            {
+                filters[i].reset();
+            }
+        }
+    }
+
 private:
-    dsp::LinkwitzRileyFilter<float> filters[3];
+    dsp::LinkwitzRileyFilter<float> filters[MAX_ORDER];
+    int order;
 };
 
 
@@ -129,6 +148,25 @@ public:
         update_band_freqs();
     }
 
+    void setOrder(int filter, int o)
+    {
+        if (filter == 0)
+        {
+            filters[LP2].setOrder(o);
+            filters[HP2].setOrder(o);
+        }
+        else if (filter == 1)
+        {
+            filters[LP1].setOrder(o);
+            filters[HP1].setOrder(o);
+        }
+        else
+        {
+            filters[HP3].setOrder(o);
+            filters[LP3].setOrder(o);
+        }
+    }
+
     // returns estimated pitch in hertz
     float getTrackedPitch()
     {
@@ -176,15 +214,12 @@ private:
 
     void update_band_freqs()
     {
-        for (int i = 0; i < 3; i++)
-        {
-            filters[LP1].setCutoffFrequency(bandFreqs[1]);
-            filters[HP1].setCutoffFrequency(bandFreqs[1]);
-            filters[LP2].setCutoffFrequency(bandFreqs[0]);
-            filters[HP2].setCutoffFrequency(bandFreqs[0]);
-            filters[LP3].setCutoffFrequency(bandFreqs[2]);
-            filters[HP3].setCutoffFrequency(bandFreqs[2]);
-        }
+        filters[LP1].setCutoffFrequency(bandFreqs[1]);
+        filters[HP1].setCutoffFrequency(bandFreqs[1]);
+        filters[LP2].setCutoffFrequency(bandFreqs[0]);
+        filters[HP2].setCutoffFrequency(bandFreqs[0]);
+        filters[LP3].setCutoffFrequency(bandFreqs[2]);
+        filters[HP3].setCutoffFrequency(bandFreqs[2]);
     }
 
 };
