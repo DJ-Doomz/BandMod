@@ -79,7 +79,6 @@ float BandMod::process(float s)
         if (feedBackMode == 0)
         {
             bs[i] += hp[i].processSample(jlimit(-1.f, 1.f, delayBuffers[i].get(1 + feedbackDelay[i] * 40000) * feedbackAmt[i]));
-            hp[i].snapToZero();
         }
         fmBuffers[i].put(bs[i]);
     }

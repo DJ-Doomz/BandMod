@@ -61,6 +61,30 @@ BandModAudioProcessor::BandModAudioProcessor()
     fifo{ 0 },
     fftData{ 0 }
 {
+    for (int i = 0; i < 4; i++)
+    {
+        auto stri = String(i);
+        auto fmname = String("fmAmt") + stri;
+        auto prename = String("preGain") + stri;
+        auto postname = String("postGain") + stri;
+        auto feedbkname = String("feedBack") + stri;
+        auto fmpitchname = String("fmPitch") + stri;
+        auto delaytimename = String("delaytime") + stri;
+        n_fmAmt[i] = apvts.getRawParameterValue(fmname);
+        n_preGain[i] = apvts.getRawParameterValue(prename);
+        n_postGain[i] = apvts.getRawParameterValue(postname);
+        n_feedBack[i] = apvts.getRawParameterValue(feedbkname);
+        n_fmPitch[i] = apvts.getRawParameterValue(fmpitchname);
+        n_delaytime[i] = apvts.getRawParameterValue(delaytimename);
+    }
+
+    n_lowFreq = apvts.getRawParameterValue("LowFreq");
+    n_midFreq = apvts.getRawParameterValue("MidFreq");
+    n_highFreq = apvts.getRawParameterValue("HighFreq");
+    n_lowOrder = apvts.getRawParameterValue("LowOrder");
+    n_midOrder = apvts.getRawParameterValue("MidOrder");
+    n_highOrder = apvts.getRawParameterValue("HighOrder");
+    n_mode = apvts.getRawParameterValue("Mode");
 }
 
 BandModAudioProcessor::~BandModAudioProcessor()
@@ -206,29 +230,22 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     {
         for (int i = 0; i < 4; i++)
         {
-            auto stri = String(i);
-            auto fmname = String("fmAmt") + stri;
-            auto prename = String("preGain") + stri;
-            auto postname = String("postGain") + stri;
-            auto feedbkname = String("feedBack") + stri;
-            auto fmpitchname = String("fmPitch") + stri;
-            auto delaytimename = String("delaytime") + stri;
-            bm[c].setfmAmt(i, *apvts.getRawParameterValue(fmname));
-            bm[c].setpre(i, *apvts.getRawParameterValue(prename));
-            bm[c].setpost(i, *apvts.getRawParameterValue(postname));
-            bm[c].setfeedbackAmt(i, *apvts.getRawParameterValue(feedbkname));
-            bm[c].setfmPitch(i, *apvts.getRawParameterValue(fmpitchname));
-            bm[c].setfeedbackDelay(i, *apvts.getRawParameterValue(delaytimename));
+            bm[c].setfmAmt(i, *n_fmAmt[i]);
+            bm[c].setpre(i, *n_preGain[i]);
+            bm[c].setpost(i, *n_postGain[i]);
+            bm[c].setfeedbackAmt(i, *n_feedBack[i]);
+            bm[c].setfmPitch(i, *n_fmPitch[i]);
+            bm[c].setfeedbackDelay(i, *n_delaytime[i]);
         }
-        bm[c].setBandFreq(0, *apvts.getRawParameterValue("LowFreq"));
-        bm[c].setBandFreq(1, *apvts.getRawParameterValue("MidFreq"));
-        bm[c].setBandFreq(2, *apvts.getRawParameterValue("HighFreq"));
+        bm[c].setBandFreq(0, *n_lowFreq);
+        bm[c].setBandFreq(1, *n_midFreq);
+        bm[c].setBandFreq(2, *n_highFreq);
 
-        bm[c].setOrder(0, *apvts.getRawParameterValue("LowOrder"));
-        bm[c].setOrder(1, *apvts.getRawParameterValue("MidOrder"));
-        bm[c].setOrder(2, *apvts.getRawParameterValue("HighOrder"));
+        bm[c].setOrder(0, *n_lowOrder);
+        bm[c].setOrder(1, *n_midOrder);
+        bm[c].setOrder(2, *n_highOrder);
 
-        bm[c].setFeedbackMode(*apvts.getRawParameterValue("Mode"));
+        bm[c].setFeedbackMode(*n_mode);
     }
     ///// done with params
 

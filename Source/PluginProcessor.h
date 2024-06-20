@@ -75,6 +75,22 @@ private:
 
     BandMod bm[2];
 
+    // params
+    std::atomic<float> 
+        *n_fmAmt[4],
+        *n_preGain[4],
+        *n_postGain[4],
+        *n_feedBack[4],
+        *n_fmPitch[4],
+        *n_delaytime[4],
+        *n_lowFreq,
+        *n_midFreq,
+        *n_highFreq,
+        *n_lowOrder,
+        *n_midOrder,
+        *n_highOrder,
+        *n_mode;
+
     void pushNextSampleIntoFifo(float sample) noexcept
     {
         // if the fifo contains enough data, set a flag to say

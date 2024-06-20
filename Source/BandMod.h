@@ -62,7 +62,6 @@ public:
         for (int i = 0; i < order; i++)
         {
             s = filters[i].processSample(0, s);
-            filters[i].snapToZero();
         }
         return s;
     }
