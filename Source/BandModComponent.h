@@ -18,6 +18,7 @@
 #include "myLookAndFeel.h"
 #include "myButton.h"
 #include "BandGraphComponent.h"
+#include "PopupMessage.h"
 
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
@@ -117,7 +118,8 @@ public:
     BandModComponent(BandModAudioProcessor& p, BandMod& b) : processor(p),
         bm(b),
         bandGraphComponent(p, b),
-        modeButton("FB Mode")
+        modeButton("FB Mode"),
+        warningMessage(p)
     {
         // In your constructor, you should add any child components, and
         // initialise any special settings that your component needs.
@@ -133,6 +135,15 @@ public:
         addAndMakeVisible(highOrderSlider);
         addAndMakeVisible(bandGraphComponent);
         addAndMakeVisible(modeButton);
+        addAndMakeVisible(drySlider);
+        addAndMakeVisible(wetSlider);
+        addAndMakeVisible(releaseSlider);
+
+        if (p.showWarning)
+        {
+            addAndMakeVisible(warningMessage);
+            warningMessage.toFront(true);
+        }
 
         lowOrderSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
         midOrderSlider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
@@ -154,15 +165,7 @@ public:
            You should replace everything in this method with your own
            drawing code..
         */
-
         g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
-
-        g.setColour (juce::Colours::grey);
-        g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
-
-        g.setColour (juce::Colours::white);
-        g.drawText ("BandModComponent", getLocalBounds(),
-                    juce::Justification::centred, true);   // draw some placeholder text
     }
 
     void addAttachment(juce::AudioProcessorValueTreeState& vts)
@@ -171,7 +174,7 @@ public:
         {
             bands[i].addAttachment(vts, i);
         }
-
+       
         lowFreqAttachment.reset(new SliderAttachment(vts, "LowFreq", lowFreqSlider.getSlider()));
         midFreqAttachment.reset(new SliderAttachment(vts, "MidFreq", midFreqSlider.getSlider()));
         highFreqAttachment.reset(new SliderAttachment(vts, "HighFreq", highFreqSlider.getSlider()));
@@ -181,6 +184,10 @@ public:
         highOrderAttachment.reset(new SliderAttachment(vts, "HighOrder", highOrderSlider));
 
         modeAttachment.reset(new ButtonAttachment(vts, "Mode", modeButton.getButton()));
+
+        dryAttachment.reset(new SliderAttachment(vts, "Dry", drySlider.getSlider()));
+        wetAttachment.reset(new SliderAttachment(vts, "Wet", wetSlider.getSlider()));
+        releaseAttachment.reset(new SliderAttachment(vts, "Release", releaseSlider.getSlider()));
     }
 
     void resized() override
@@ -188,6 +195,9 @@ public:
         // This method is where you should set the bounds of any child
         // components that your component contains..
         auto r = getLocalBounds();
+
+        warningMessage.setBounds(r.expanded(-r.getWidth()/6, -r.getHeight() / 6));
+
         auto bg = r.removeFromTop(r.getHeight() / 3);
         bandGraphComponent.setBounds(bg);
 
@@ -212,12 +222,21 @@ public:
         stamp1.translate(w*1.5, 0);
         modeButton.setBounds(stamp1);
 
+        auto bottom = r.removeFromBottom(r.getHeight() / 4);
         auto stamp = r.removeFromLeft(r.getWidth() / 4);
         for (int i = 0; i < 4; i++)
         {
             bands[i].setBounds(stamp);
             stamp.translate(stamp.getWidth(), 0);
         }
+
+        // bottom bar
+        stamp = bottom.removeFromLeft(bottom.getWidth() / 3);
+        drySlider.setBounds(stamp);
+        stamp.translate(stamp.getWidth(), 0);
+        wetSlider.setBounds(stamp);
+        stamp.translate(stamp.getWidth(), 0);
+        releaseSlider.setBounds(stamp);
     }
 
 private:
@@ -226,7 +245,10 @@ private:
 
     SliderAndLabel lowFreqSlider{ "LowFreq" },
         midFreqSlider{ "MidFreq" },
-        highFreqSlider{ "HighFreq" };
+        highFreqSlider{ "HighFreq" },
+        drySlider{ "Dry" },
+        wetSlider{ "Wet" },
+        releaseSlider{ "Release" };
     SensitiveSlider lowOrderSlider,
         midOrderSlider,
         highOrderSlider;
@@ -238,12 +260,17 @@ private:
         highFreqAttachment,
         lowOrderAttachment,
         midOrderAttachment,
-        highOrderAttachment;
+        highOrderAttachment,
+        dryAttachment,
+        wetAttachment,
+        releaseAttachment;
         
     std::unique_ptr<ButtonAttachment> modeAttachment;
     BandComponent bands[4];
 
     BandGraphComponent bandGraphComponent;
+
+    PopupMessage warningMessage;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BandModComponent)
 };

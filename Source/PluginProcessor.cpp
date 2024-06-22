@@ -44,6 +44,8 @@ AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 
     layout.add(std::make_unique <juce::AudioParameterFloat > ("Wet", "Wet", juce::NormalisableRange<float>(0, 1, 0), 1.f));
     layout.add(std::make_unique <juce::AudioParameterFloat >("Dry", "Dry", juce::NormalisableRange<float>(0, 1, 0), 0.f));
+    
+    layout.add(std::make_unique <juce::AudioParameterFloat >("Release", "Release", juce::NormalisableRange<float>(0, 1, 0), 1.f));
     return layout;
 }
 
@@ -61,7 +63,8 @@ BandModAudioProcessor::BandModAudioProcessor()
 #endif
     , apvts(*this, nullptr, "STATE", createParameterLayout()),
     fifo{ 0 },
-    fftData{ 0 }
+    fftData{ 0 },
+    showWarning(true)
 {
     for (int i = 0; i < 4; i++)
     {
@@ -89,6 +92,7 @@ BandModAudioProcessor::BandModAudioProcessor()
     n_mode = apvts.getRawParameterValue("Mode");
     n_wet = apvts.getRawParameterValue("Wet");
     n_dry = apvts.getRawParameterValue("Dry");
+    n_release = apvts.getRawParameterValue("Release");
 }
 
 BandModAudioProcessor::~BandModAudioProcessor()
@@ -250,6 +254,7 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
         bm[c].setOrder(2, *n_highOrder);
 
         bm[c].setFeedbackMode(*n_mode);
+        bm[c].setRelease(*n_release);
     }
     ///// done with params
 
@@ -274,7 +279,6 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     //doing this high-pass causes it to crash for some reason????
     hp.process(ctx);
     limiter.process(ctx);
-
 }
 
 //==============================================================================

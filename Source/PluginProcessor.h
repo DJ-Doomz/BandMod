@@ -65,6 +65,7 @@ public:
     bool nextFFTBlockReady = false;
 
     std::atomic<float> fftData[2 * fftSize];
+    bool showWarning;
 
 private:
     juce::dsp::Limiter<float> limiter;
@@ -91,7 +92,8 @@ private:
         *n_highOrder,
         *n_mode,
         *n_wet,
-        *n_dry;
+        *n_dry,
+        *n_release;
 
     void pushNextSampleIntoFifo(float sample) noexcept
     {

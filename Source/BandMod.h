@@ -101,7 +101,11 @@ public:
         d(0),
         sampleRate(48000),
         bandFreqs{ 200, 1000, 5000 },
-        feedBackMode(0)
+        feedBackMode(0),
+        release(1),
+        noiseGate(1),
+        startupTime(196000),
+        startup(startupTime)
     {
         //assuming 48k samplerate for now bcz whatever
 
@@ -174,6 +178,11 @@ public:
         feedBackMode = fb;
     }
 
+    void setRelease(float r)
+    {
+        release = r;
+    }
+
     // returns estimated pitch in hertz
     float getTrackedPitch()
     {
@@ -201,12 +210,16 @@ public:
     }
 
 private:
+    // prevent the plugin from blasting ppls ears on startup
+    const int startupTime;
+    int startup;
+
     // pitch tracking
     pitchTracker pt;
     float phase;
     std::atomic<float> d;
     std::atomic<double> sampleRate;
-    const float transpose_amts[9] = { .125, .25, .5, 1, 2, 3, 4, 8, 16 };
+    const float transpose_amts[9] = { .125, .25, .5, 1, 2, 4, 8, 16, 32 };
 
     // params
     float preGain[4], targetpreGain[4],
@@ -214,11 +227,13 @@ private:
         fmAmt[4], targetfmAmt[4],
         fmPitch[4],
         feedbackDelay[4], targetfeedbackDelay[4],
-        feedbackAmt[4];
+        feedbackAmt[4], release;
 
     std::atomic<float> postGain[4];
 
     int feedBackMode;
+
+    float noiseGate;
 
     // buffers
     CircularBuffer fmBuffers[4];

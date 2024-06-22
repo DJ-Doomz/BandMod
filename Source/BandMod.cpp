@@ -47,6 +47,9 @@ float BandMod::process(float s)
     float bs[4] = { 0,0,0,0 };  // for keeping track of each band's processing
     update_params();
     
+    //input volume tracking
+    noiseGate = abs(s) > .25 ? 1 : noiseGate * (.999 + .001*release);
+
     // pitch tracking stuff
     float tracked = pt.getPitch(s);
 
@@ -95,6 +98,19 @@ float BandMod::process(float s)
         delayBuffers[i].put(bs[i]);
 
         o += bs[i] * postGain[i];
+    }
+
+    // finally do noise gating
+    if (release < 0.99)
+    {
+        o *= noiseGate;
+    }
+
+    if (startup > 0)
+    {
+        startup--;
+        auto what = (1 - ((float)startup / startupTime));
+        o = jlimit(-what, what, o);
     }
 
     // also output the tracked pitch for debugging
