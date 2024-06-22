@@ -42,6 +42,8 @@ AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 
     layout.add(std::make_unique < juce::AudioParameterBool>("Mode", "Mode", false));
 
+    layout.add(std::make_unique <juce::AudioParameterFloat > ("Wet", "Wet", juce::NormalisableRange<float>(0, 1, 0), 1.f));
+    layout.add(std::make_unique <juce::AudioParameterFloat >("Dry", "Dry", juce::NormalisableRange<float>(0, 1, 0), 0.f));
     return layout;
 }
 
@@ -85,6 +87,8 @@ BandModAudioProcessor::BandModAudioProcessor()
     n_midOrder = apvts.getRawParameterValue("MidOrder");
     n_highOrder = apvts.getRawParameterValue("HighOrder");
     n_mode = apvts.getRawParameterValue("Mode");
+    n_wet = apvts.getRawParameterValue("Wet");
+    n_dry = apvts.getRawParameterValue("Dry");
 }
 
 BandModAudioProcessor::~BandModAudioProcessor()
@@ -255,7 +259,9 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
         {
             auto* ptrOut = buffer.getWritePointer(channel);
             auto* ptrIn = buffer.getReadPointer(channel);
-            ptrOut[j] = bm[channel].process(ptrIn[j]);
+            float dry = ptrIn[j];
+            float wet = bm[channel].process(dry);
+            ptrOut[j] = *n_wet * wet + *n_dry * dry;
             if (channel == 0)
                 pushNextSampleIntoFifo(ptrIn[j]);
         }

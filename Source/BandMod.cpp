@@ -22,6 +22,8 @@ void BandMod::prepare(juce::dsp::ProcessSpec& s)
     {
         hp[i].prepare(s);
         hp[i].coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass(s.sampleRate, 10);
+        lp[i].prepare(s);
+        lp[i].coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(s.sampleRate, s.sampleRate/2.0 - 0.05*s.sampleRate);
     }
 
     sampleRate = s.sampleRate;
@@ -56,10 +58,12 @@ float BandMod::process(float s)
     // add feedback from each band
     if (feedBackMode == 1)
     {
+        float fbs = 0;
         for (int i = 0; i < 4; i++)
         {
-            s += delayBuffers[i].get(1 + feedbackDelay[i] * 40000) * feedbackAmt[i];
+            fbs += delayBuffers[i].get(1 + feedbackDelay[i] * 40000) * feedbackAmt[i];
         }
+        s += lp[0].processSample(hp[0].processSample(fbs));
     }
 
     //filter into different bands
@@ -78,7 +82,7 @@ float BandMod::process(float s)
         // add in feedback
         if (feedBackMode == 0)
         {
-            bs[i] += hp[i].processSample(jlimit(-1.f, 1.f, delayBuffers[i].get(1 + feedbackDelay[i] * 40000) * feedbackAmt[i]));
+            bs[i] += lp[i].processSample(hp[i].processSample(jlimit(-1.f, 1.f, delayBuffers[i].get(1 + feedbackDelay[i] * 40000) * feedbackAmt[i])));
         }
         fmBuffers[i].put(bs[i]);
     }

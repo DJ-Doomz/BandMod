@@ -89,7 +89,9 @@ private:
         *n_lowOrder,
         *n_midOrder,
         *n_highOrder,
-        *n_mode;
+        *n_mode,
+        *n_wet,
+        *n_dry;
 
     void pushNextSampleIntoFifo(float sample) noexcept
     {

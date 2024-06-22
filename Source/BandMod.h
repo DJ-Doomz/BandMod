@@ -88,7 +88,9 @@ class BandMod {
 public:
     BandMod() :
         preGain{ 1,1,1,1 },
+        targetpreGain{ 1,1,1,1 },
         postGain{ 1,1,1,1 },
+        targetpostGain{ 1,1,1,1 },
         targetfmAmt{ 0,0,0,0 },
         fmAmt{ 0,0,0,0 },
         fmPitch{ 0,0,0,0 },
@@ -118,11 +120,11 @@ public:
     float process(float s);
 
     void setpre(int band, float p) {
-        preGain[band] = p;
+        targetpreGain[band] = p;
     }
 
     void setpost(int band, float p) {
-            postGain[band] = p;
+        targetpostGain[band] = p;
     }
 
     void setfmAmt(int band, float p) {
@@ -178,26 +180,54 @@ public:
         return d*sampleRate;
     }
 
+    float getLowFreq()
+    {
+        return bandFreqs[0];
+    }
+
+    float getMidFreq()
+    {
+        return bandFreqs[1];
+    }
+
+    float getHighFreq()
+    {
+        return bandFreqs[2];
+    }
+
+    float getBandGain(int band)
+    {
+        return postGain[band];
+    }
+
 private:
     // pitch tracking
     pitchTracker pt;
-    float phase, d;
-    double sampleRate;
-    const float transpose_amts[9] = { .125, .25, .5, .75, 1, 2, 3, 4, 8 };
+    float phase;
+    std::atomic<float> d;
+    std::atomic<double> sampleRate;
+    const float transpose_amts[9] = { .125, .25, .5, 1, 2, 3, 4, 8, 16 };
 
     // params
-    float preGain[4], postGain[4], fmAmt[4], targetfmAmt[4], fmPitch[4], feedbackDelay[4], targetfeedbackDelay[4], feedbackAmt[4];
-    int feedBackMode;
+    float preGain[4], targetpreGain[4],
+        targetpostGain[4],
+        fmAmt[4], targetfmAmt[4],
+        fmPitch[4],
+        feedbackDelay[4], targetfeedbackDelay[4],
+        feedbackAmt[4];
 
+    std::atomic<float> postGain[4];
+
+    int feedBackMode;
 
     // buffers
     CircularBuffer fmBuffers[4];
     CircularBuffer delayBuffers[4];
 
     // filters
-    int bandFreqs[3];
+    std::atomic<int> bandFreqs[3];
 
-    juce::dsp::IIR::Filter<float> hp[4];
+    juce::dsp::IIR::Filter<float> hp[4], lp[4];
     
     HigherOrderLRF filters[6];
 
@@ -216,6 +246,8 @@ private:
             feedbackDelay[i] = smoothit(feedbackDelay[i], targetfeedbackDelay[i], .9999);
             //feedbackDelay[i] = smooth * feedbackDelay[i] + (1 - smooth) * targetfeedbackDelay[i];
             fmAmt[i] = smoothit(fmAmt[i], targetfmAmt[i], .999);
+            postGain[i] = smoothit(postGain[i], targetpostGain[i], .999);
+            preGain[i] = smoothit(preGain[i], targetpreGain[i], .999);
         }
     }
 
