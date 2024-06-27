@@ -97,7 +97,19 @@ float BandMod::process(float s)
         bs[i] = fmBuffers[i].get(fmAmt[i] + fmAmt[i] * sin(transpose * phase * MathConstants<float>::pi));
         delayBuffers[i].put(bs[i]);
 
-        o += bs[i] * postGain[i];
+        if (muteBand[i] == false)
+        {
+            float bss = bs[i] * postGain[i];
+            o += bss;
+            if (abs(bss) > vu[i])
+            {
+                vu[i] = bss;
+            }
+            else
+            {
+                vu[i] = vu[i] * .9;
+            }
+        }
     }
 
     // finally do noise gating
@@ -106,12 +118,16 @@ float BandMod::process(float s)
         o *= noiseGate;
     }
 
+
     if (startup > 0)
     {
         startup--;
         auto what = (1 - ((float)startup / startupTime));
         o = jlimit(-what, what, o);
     }
+
+    // clip final output to +/-2
+    o = jlimit(-2.f, 2.f, o);
 
     // also output the tracked pitch for debugging
     // o += sin(phase * MathConstants<float>::pi);

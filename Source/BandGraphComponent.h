@@ -68,12 +68,15 @@ public:
         if (pitchx < 0)pitchx = 0;
         pitchx += responseArea.getX();
         
-        g.setColour(Colour::fromFloatRGBA(1.f, 1.f, 1.f, 1.f));
+        ColourGradient pitchGrad(Colours::transparentWhite, 0, lb.getBottom(), Colours::transparentWhite, 0, lb.getY(), false);
+        pitchGrad.addColour(.5, Colours::white);
+        g.setGradientFill(pitchGrad);
         g.drawLine(pitchx, lb.getBottom(), pitchx, lb.getY());
 
         // draw response curves
+        g.setColour(Colours::white);
         drawResponseCurves(g);
-
+        
         // draw spectrogram
         drawNextFrameOfSpectrum();
         //g.setColour(Colour(hue, 1.f, 1.f, 1.f));
@@ -81,10 +84,10 @@ public:
         g.setColour(Colour::fromFloatRGBA(1.f, 1.f, 1.f, .6f));
         for (int i = 1; i < BandModAudioProcessor::scopeSize; ++i)
         {
-            g.drawLine({ (float)juce::jmap(i - 1, 0, BandModAudioProcessor::scopeSize - 1, 0, w),
-                                  juce::jmap(scopeData[i - 1], 0.0f, 1.0f, (float)h, 0.0f),
-                          (float)juce::jmap(i,     0, BandModAudioProcessor::scopeSize - 1, 0, w),
-                                  juce::jmap(scopeData[i],     0.0f, 1.0f, (float)h, 0.0f) }, 2);
+            g.drawLine({ (float)jmap(i - 1, 0, BandModAudioProcessor::scopeSize - 1, 0, w),
+                                  jmap(scopeData[i - 1], 0.0f, 1.0f, (float)h, 0.0f),
+                          (float)jmap(i,     0, BandModAudioProcessor::scopeSize - 1, 0, w),
+                                  jmap(scopeData[i],     0.0f, 1.0f, (float)h, 0.0f) }, 2);
         }
 
         //double trash;

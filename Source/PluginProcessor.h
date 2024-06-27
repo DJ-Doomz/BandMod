@@ -84,6 +84,7 @@ private:
         *n_feedBack[4],
         *n_fmPitch[4],
         *n_delaytime[4],
+        *n_muteBand[4],
         *n_lowFreq,
         *n_midFreq,
         *n_highFreq,
@@ -93,7 +94,8 @@ private:
         *n_mode,
         *n_wet,
         *n_dry,
-        *n_release;
+        *n_release,
+        *n_muteOnStartup;
 
     void pushNextSampleIntoFifo(float sample) noexcept
     {

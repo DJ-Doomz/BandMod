@@ -19,6 +19,7 @@
 #include "myButton.h"
 #include "BandGraphComponent.h"
 #include "PopupMessage.h"
+#include "BandVUMeeter.h"
 
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
@@ -40,6 +41,15 @@ public:
         addAndMakeVisible(fmPitchSlider);
         addAndMakeVisible(feedbackSlider);
         addAndMakeVisible(delaySlider);
+        addAndMakeVisible(muteButton);
+        addAndMakeVisible(bandVu);
+
+        muteButton.setButtonText("M");
+        muteButton.setToggleable(true);
+        muteButton.setClickingTogglesState(true);
+
+        postSlider.setSliderStyle(Slider::LinearVertical);
+        postSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 90, 0);
     }
 
     ~BandComponent() override
@@ -48,36 +58,43 @@ public:
 
     void paint(juce::Graphics& g) override
     {
-        /* This demo code just fills the component's background and
-           draws some placeholder text to get you started.
+        auto lb = getLocalBounds();
+        auto h = lb.getHeight();
+        auto w = lb.getWidth();
+        g.setColour(Colours::black);
+        g.fillAll();
+        // draw lines around component
 
-           You should replace everything in this method with your own
-           drawing code..
-        */
-        g.setColour(juce::Colours::red);
-        g.drawText("BandComponent", getLocalBounds(),
-            juce::Justification::centred, true);   // draw some placeholder text
-        g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));   // clear the background
+        ColourGradient lg(Colours::transparentWhite, 0, 0, Colours::transparentWhite, 0, h, false);
+        lg.addColour(0.5, Colours::white);
+        g.setGradientFill(lg);
+        g.drawLine(w, 0, w, h, 2);
 
-        g.setColour(juce::Colours::grey);
-        g.drawRect(getLocalBounds(), 1);   // draw an outline around the component
     }
 
     void resized() override
     {
-        // This method is where you should set the bounds of any child
-        // components that your component contains..
-        juce::Rectangle r = getLocalBounds();
+        auto lb = getLocalBounds();
+        auto h = lb.getHeight();
+        auto w = lb.getWidth();
+        
+        auto gainArea = lb.removeFromTop(h / 2).expanded(-5, -5);
+        preSlider.setBounds(gainArea.removeFromLeft(w / 2));
+        postSlider.setBounds(gainArea.removeFromLeft(w / 4));
+        bandVu.setBounds(gainArea.removeFromTop(gainArea.getHeight()*.75).expanded(-6, -4) );
+        muteButton.setBounds(gainArea);
 
-        preSlider.setBounds(r.removeFromTop(r.getHeight() / 6));
-        postSlider.setBounds(r.removeFromTop(r.getHeight() / 5));
-        fmSlider.setBounds(r.removeFromTop(r.getHeight() / 4));
-        fmPitchSlider.setBounds(r.removeFromTop(r.getHeight() / 3));
-        feedbackSlider.setBounds(r.removeFromTop(r.getHeight() / 2));
-        delaySlider.setBounds(r.removeFromTop(r.getHeight() / 1));
+        auto fmArea = lb.removeFromTop(h / 4);
+        fmSlider.setBounds(fmArea.removeFromLeft(w / 2));
+        fmPitchSlider.setBounds(fmArea);
+
+        auto feedArea = lb;
+        feedbackSlider.setBounds(feedArea.removeFromLeft(w / 2));
+        delaySlider.setBounds(feedArea);
+
     }
 
-    void addAttachment(juce::AudioProcessorValueTreeState& vts, int bandNum)
+    void addAttachment(juce::AudioProcessorValueTreeState& vts, BandMod& bm, int bandNum)
     {
         auto stri = String(bandNum);
         auto fmname = String("fmAmt") + stri;
@@ -85,22 +102,28 @@ public:
         auto postname = String("postGain") + stri;
         auto feedbkname = String("feedBack") + stri;
         auto fmpitchname = String("fmPitch") + stri;
+        auto mutebandname = String("muteBand") + stri;
         auto delaytimename = String("delaytime") + stri;
         fmAttachment.reset(new SliderAttachment(vts, fmname, fmSlider.getSlider()));
         preAttachment.reset(new SliderAttachment(vts, prename, preSlider.getSlider()));
-        postAttachment.reset(new SliderAttachment(vts, postname, postSlider.getSlider()));
+        postAttachment.reset(new SliderAttachment(vts, postname, postSlider));
         fmPitchAttachment.reset(new SliderAttachment(vts, fmpitchname, fmPitchSlider.getSlider()));
         feedbackAttachment.reset(new SliderAttachment(vts, feedbkname, feedbackSlider.getSlider()));
         delayAttachment.reset(new SliderAttachment(vts, delaytimename, delaySlider.getSlider()));
+        muteAttachment.reset(new ButtonAttachment(vts, mutebandname, muteButton));
+
+        // set up vu meeter
+        bandVu.setValuetoMonitor(bm.getVu(bandNum));
     }
 
 private:
-    SliderAndLabel preSlider{ "PreGain" },
-        postSlider{ "PostGain" },
-        fmSlider{ "FM Amount" },
-        fmPitchSlider{ "FM Transpose" },
-        feedbackSlider{ "Feedback" },
-        delaySlider{ "Delay" };
+    SliderAndLabel preSlider{ "DISTORTION" },
+        fmSlider{ "FM" },
+        fmPitchSlider{ "TRANSPOSE" },
+        feedbackSlider{ "FEEDBACK" },
+        delaySlider{ "DELAY" };
+
+    Slider postSlider;
 
     std::unique_ptr<SliderAttachment> preAttachment,
         postAttachment,
@@ -109,9 +132,14 @@ private:
         feedbackAttachment,
         delayAttachment;
 
+    BandVUMeeter bandVu;
+
+    TextButton muteButton;
+    std::unique_ptr<ButtonAttachment> muteAttachment;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BandComponent)
 };
-
+// TODO: split into more subcomponents maybe
 class BandModComponent  : public juce::Component
 {
 public:
@@ -159,20 +187,20 @@ public:
 
     void paint (juce::Graphics& g) override
     {
-        /* This demo code just fills the component's background and
-           draws some placeholder text to get you started.
-
-           You should replace everything in this method with your own
-           drawing code..
-        */
-        g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
+        auto lb = getLocalBounds();
+        auto w = lb.getWidth();
+        auto h = lb.getHeight();
+        g.setColour(Colours::black);
+        g.fillAll();
+        // draw lines n shiz
+        
     }
 
     void addAttachment(juce::AudioProcessorValueTreeState& vts)
     {
         for (int i = 0; i < 4; i++)
         {
-            bands[i].addAttachment(vts, i);
+            bands[i].addAttachment(vts, bm, i);
         }
        
         lowFreqAttachment.reset(new SliderAttachment(vts, "LowFreq", lowFreqSlider.getSlider()));
@@ -243,12 +271,12 @@ private:
     BandModAudioProcessor& processor;
     BandMod& bm;
 
-    SliderAndLabel lowFreqSlider{ "LowFreq" },
-        midFreqSlider{ "MidFreq" },
-        highFreqSlider{ "HighFreq" },
-        drySlider{ "Dry" },
-        wetSlider{ "Wet" },
-        releaseSlider{ "Release" };
+    SliderAndLabel lowFreqSlider{ "LOWFREQ" },
+        midFreqSlider{ "MIDFREQ" },
+        highFreqSlider{ "HIGHFREQ" },
+        drySlider{ "DRY" },
+        wetSlider{ "WET" },
+        releaseSlider{ "RELEASE" };
     SensitiveSlider lowOrderSlider,
         midOrderSlider,
         highOrderSlider;

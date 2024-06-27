@@ -18,8 +18,7 @@ enum FilterNames { LP1 = 0, HP1 = 1, LP2 = 2, HP2 = 3, LP3 = 4, HP3 = 5};
 // helper class
 
 /*
-TODO:
-add options to change order (and maybe make the phases actually correct)
+I'm sure this is not the correct way to do this but whatever it sounds cool
 */
 class HigherOrderLRF
 {
@@ -97,6 +96,7 @@ public:
         feedbackAmt{ 0,0,0,0 },
         feedbackDelay{ 0,0,0,0 },
         targetfeedbackDelay{ 0,0,0,0 },
+        muteBand{false, false, false, false},
         phase(0),
         d(0),
         sampleRate(48000),
@@ -183,6 +183,11 @@ public:
         release = r;
     }
 
+    void setMuteBand(int band, bool m)
+    {
+        muteBand[band] = m;
+    }
+
     // returns estimated pitch in hertz
     float getTrackedPitch()
     {
@@ -209,6 +214,11 @@ public:
         return postGain[band];
     }
 
+    std::atomic<float>* getVu(int band)
+    {
+        return &vu[band];
+    }
+
 private:
     // prevent the plugin from blasting ppls ears on startup
     const int startupTime;
@@ -228,8 +238,9 @@ private:
         fmPitch[4],
         feedbackDelay[4], targetfeedbackDelay[4],
         feedbackAmt[4], release;
+    bool muteBand[4];
 
-    std::atomic<float> postGain[4];
+    std::atomic<float> postGain[4], vu[4];
 
     int feedBackMode;
 

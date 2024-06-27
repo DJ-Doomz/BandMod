@@ -22,12 +22,14 @@ AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         auto postname = String("postGain") + stri;
         auto feedbkname = String("feedBack") + stri;
         auto fmpitchname = String("fmPitch") + stri;
+        auto mutebandname = String("muteBand") + stri;
         auto delaytimename = String("delaytime") + stri;
         layout.add(std::make_unique<juce::AudioParameterFloat>(fmname, fmname, juce::NormalisableRange<float>(0, 1000, 0), 0.0f));
-        layout.add(std::make_unique<juce::AudioParameterFloat>(prename, prename, juce::NormalisableRange<float>(0, 1000, 0), 1.0f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(prename, prename, juce::NormalisableRange<float>(0.1, 1000, 0), 1.0f));
         layout.add(std::make_unique<juce::AudioParameterFloat>(postname, postname, juce::NormalisableRange<float>(0, 2, 0), 1.0f));
         layout.add(std::make_unique<juce::AudioParameterFloat>(feedbkname, feedbkname, juce::NormalisableRange<float>(0, 1.1, 0), 0.0f));
         layout.add(std::make_unique<juce::AudioParameterFloat>(fmpitchname, fmpitchname, juce::NormalisableRange<float>(0, 1, 0), 0.5f));
+        layout.add(std::make_unique<juce::AudioParameterBool>(mutebandname, mutebandname, false));
         layout.add(std::make_unique<juce::AudioParameterFloat>(delaytimename, delaytimename, juce::NormalisableRange<float>(0, 1, 0), 0.f));
     }
     // band frequencies
@@ -40,12 +42,15 @@ AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     layout.add(std::make_unique < juce::AudioParameterInt>("MidOrder", "MidOrder", 1, HigherOrderLRF::MAX_ORDER, 1));
     layout.add(std::make_unique < juce::AudioParameterInt>("HighOrder", "HighOrder", 1, HigherOrderLRF::MAX_ORDER, 1));
 
+    //misc
     layout.add(std::make_unique < juce::AudioParameterBool>("Mode", "Mode", false));
 
     layout.add(std::make_unique <juce::AudioParameterFloat > ("Wet", "Wet", juce::NormalisableRange<float>(0, 1, 0), 1.f));
     layout.add(std::make_unique <juce::AudioParameterFloat >("Dry", "Dry", juce::NormalisableRange<float>(0, 1, 0), 0.f));
     
     layout.add(std::make_unique <juce::AudioParameterFloat >("Release", "Release", juce::NormalisableRange<float>(0, 1, 0), 1.f));
+
+    layout.add(std::make_unique <juce::AudioParameterBool >("MuteOnStartup", "MuteOnStartup", false));
     return layout;
 }
 
@@ -74,6 +79,7 @@ BandModAudioProcessor::BandModAudioProcessor()
         auto postname = String("postGain") + stri;
         auto feedbkname = String("feedBack") + stri;
         auto fmpitchname = String("fmPitch") + stri;
+        auto mutebandname = String("muteBand") + stri;
         auto delaytimename = String("delaytime") + stri;
         n_fmAmt[i] = apvts.getRawParameterValue(fmname);
         n_preGain[i] = apvts.getRawParameterValue(prename);
@@ -81,6 +87,7 @@ BandModAudioProcessor::BandModAudioProcessor()
         n_feedBack[i] = apvts.getRawParameterValue(feedbkname);
         n_fmPitch[i] = apvts.getRawParameterValue(fmpitchname);
         n_delaytime[i] = apvts.getRawParameterValue(delaytimename);
+        n_muteBand[i] = apvts.getRawParameterValue(mutebandname);
     }
 
     n_lowFreq = apvts.getRawParameterValue("LowFreq");
@@ -93,6 +100,7 @@ BandModAudioProcessor::BandModAudioProcessor()
     n_wet = apvts.getRawParameterValue("Wet");
     n_dry = apvts.getRawParameterValue("Dry");
     n_release = apvts.getRawParameterValue("Release");
+    n_muteOnStartup = apvts.getRawParameterValue("MuteOnStartup");
 }
 
 BandModAudioProcessor::~BandModAudioProcessor()
@@ -244,6 +252,7 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
             bm[c].setfeedbackAmt(i, *n_feedBack[i]);
             bm[c].setfmPitch(i, *n_fmPitch[i]);
             bm[c].setfeedbackDelay(i, *n_delaytime[i]);
+            bm[c].setMuteBand(i, *n_muteBand[i]);
         }
         bm[c].setBandFreq(0, *n_lowFreq);
         bm[c].setBandFreq(1, *n_midFreq);
@@ -265,8 +274,11 @@ void BandModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
             auto* ptrOut = buffer.getWritePointer(channel);
             auto* ptrIn = buffer.getReadPointer(channel);
             float dry = ptrIn[j];
-            float wet = bm[channel].process(dry);
-            ptrOut[j] = *n_wet * wet + *n_dry * dry;
+            float wet = 0;
+            if (!(showWarning == true && (*n_muteOnStartup > .5)))
+                wet = bm[channel].process(dry);
+            ptrOut[j] = *n_dry * dry + *n_wet * wet;
+            
             if (channel == 0)
                 pushNextSampleIntoFifo(ptrIn[j]);
         }
