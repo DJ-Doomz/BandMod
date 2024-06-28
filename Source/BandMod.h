@@ -82,7 +82,7 @@ private:
     int order;
 };
 
-
+// TODO: make some kind of utility for param smoothing?
 class BandMod {
 public:
     BandMod() :
@@ -94,6 +94,7 @@ public:
         fmAmt{ 0,0,0,0 },
         fmPitch{ 0,0,0,0 },
         feedbackAmt{ 0,0,0,0 },
+        targetfeedbackAmt{ 0,0,0,0 },
         feedbackDelay{ 0,0,0,0 },
         targetfeedbackDelay{ 0,0,0,0 },
         muteBand{false, false, false, false},
@@ -136,7 +137,7 @@ public:
     }
 
     void setfeedbackAmt(int band, float p) {
-        feedbackAmt[band] = p;
+        targetfeedbackAmt[band] = p;
     }
 
     void setfmPitch(int band, float p)
@@ -237,7 +238,7 @@ private:
         fmAmt[4], targetfmAmt[4],
         fmPitch[4],
         feedbackDelay[4], targetfeedbackDelay[4],
-        feedbackAmt[4], release;
+        feedbackAmt[4], targetfeedbackAmt[4], release;
     bool muteBand[4];
 
     std::atomic<float> postGain[4], vu[4];
@@ -270,7 +271,7 @@ private:
         for (int i = 0; i < 4; i++)
         {
             feedbackDelay[i] = smoothit(feedbackDelay[i], targetfeedbackDelay[i], .9999);
-            //feedbackDelay[i] = smooth * feedbackDelay[i] + (1 - smooth) * targetfeedbackDelay[i];
+            feedbackAmt[i] = smoothit(feedbackAmt[i], targetfeedbackAmt[i], .999);
             fmAmt[i] = smoothit(fmAmt[i], targetfmAmt[i], .999);
             postGain[i] = smoothit(postGain[i], targetpostGain[i], .999);
             preGain[i] = smoothit(preGain[i], targetpreGain[i], .999);

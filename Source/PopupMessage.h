@@ -107,7 +107,7 @@ public:
         g.setColour (juce::Colours::red);
         // warning symbols in top corners
         g.setFont(34);
-        g.drawText ("noise warning", lb.removeFromTop(h/6),
+        g.drawText ("NOISE WARNING", lb.removeFromTop(h/6),
                     juce::Justification::centred, true);   // draw some placeholder text
         AttributedString ats("This plugin makes very loud noises.\n\nUse the mute on startup feature to prevent sudden volume spikes when loading projects.\n\nPlease experiment at safe volume levels.");
         ats.setColour(Colours::white);

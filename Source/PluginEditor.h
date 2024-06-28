@@ -31,6 +31,8 @@ private:
     BandModAudioProcessor& audioProcessor;
     juce::AudioProcessorValueTreeState& valueTreeState;
 
+    myLookAndFeel myLnF;
+
     BandModComponent BMC;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BandModAudioProcessorEditor)

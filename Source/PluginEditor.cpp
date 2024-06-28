@@ -21,6 +21,7 @@ BandModAudioProcessorEditor::BandModAudioProcessorEditor (BandModAudioProcessor&
     addAndMakeVisible(BMC);
     setResizeLimits(300, 300, 2000, 2000);
     BMC.addAttachment(vts);
+    LookAndFeel::setDefaultLookAndFeel(&myLnF);
 }
 
 BandModAudioProcessorEditor::~BandModAudioProcessorEditor()

@@ -36,8 +36,8 @@ public:
 
     void resized() override
     {
-        label.setBoundsRelative(0.f, 0.f, 1.f, labelHeight);
-        slider.setBoundsRelative(0.f, labelHeight, 1.f, sliderHeight);
+        label.setBoundsRelative(0.f, 1-labelHeight, 1.f, labelHeight);
+        slider.setBoundsRelative(0.f, 0, 1.f, sliderHeight);
     }
 
     SensitiveSlider& getSlider() { return slider; }

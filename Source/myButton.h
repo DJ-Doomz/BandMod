@@ -38,8 +38,9 @@ public:
 
     void resized() override
     {
+        const int checkboxWidth = 24;
         auto lb = getLocalBounds();
-        label.setBounds(lb.removeFromLeft(lb.getWidth()/2));
+        label.setBounds(lb.removeFromLeft(lb.getWidth()-checkboxWidth));
         button.setBounds(lb);
     }
 

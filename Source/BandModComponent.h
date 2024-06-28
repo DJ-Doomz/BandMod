@@ -31,7 +31,8 @@ typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 class BandComponent : public juce::Component
 {
 public:
-    BandComponent()
+    BandComponent() :
+        muteButton("MUTE")
     {
         // In your constructor, you should add any child components, and
         // initialise any special settings that your component needs.
@@ -44,12 +45,30 @@ public:
         addAndMakeVisible(muteButton);
         addAndMakeVisible(bandVu);
 
-        muteButton.setButtonText("M");
-        muteButton.setToggleable(true);
-        muteButton.setClickingTogglesState(true);
-
         postSlider.setSliderStyle(Slider::LinearVertical);
         postSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 90, 0);
+
+        feedbackSlider.getSlider().getProperties().set("bipolar", true);
+
+        muteButton.setToggleable(true);
+        muteButton.setClickingTogglesState(true);
+        DrawingFunction muteDrawing = [&](Graphics& g, bool highlighted, bool down, juce::Rectangle<int> lb) {
+            // just a basic circle to indicate on/off
+            Rectangle<float> p(0, 0, 10, 10);
+            p.setCentre(lb.getCentre().toFloat());
+            if (down)
+            {
+                g.setColour(Colours::black);
+            }
+            else
+            {
+                g.setColour(Colours::lightgrey);
+            }
+            g.fillEllipse(p);
+            g.setColour(Colours::white);
+            g.drawEllipse(p, 1);
+        };
+        muteButton.setDrawingFunction(muteDrawing);
     }
 
     ~BandComponent() override
@@ -74,23 +93,24 @@ public:
 
     void resized() override
     {
+        const int margin = 4;
         auto lb = getLocalBounds();
         auto h = lb.getHeight();
         auto w = lb.getWidth();
         
         auto gainArea = lb.removeFromTop(h / 2).expanded(-5, -5);
-        preSlider.setBounds(gainArea.removeFromLeft(w / 2));
-        postSlider.setBounds(gainArea.removeFromLeft(w / 4));
-        bandVu.setBounds(gainArea.removeFromTop(gainArea.getHeight()*.75).expanded(-6, -4) );
-        muteButton.setBounds(gainArea);
+        preSlider.setBounds(gainArea.removeFromLeft(w / 2).reduced(margin));
+        postSlider.setBounds(gainArea.removeFromLeft(w / 4).reduced(margin));
+        bandVu.setBounds(gainArea.removeFromTop(gainArea.getHeight()*.75).expanded(-6, -4).reduced(margin));
+        muteButton.setBounds(gainArea.reduced(margin));
 
         auto fmArea = lb.removeFromTop(h / 4);
-        fmSlider.setBounds(fmArea.removeFromLeft(w / 2));
-        fmPitchSlider.setBounds(fmArea);
+        fmSlider.setBounds(fmArea.removeFromLeft(w / 2).reduced(margin));
+        fmPitchSlider.setBounds(fmArea.reduced(margin));
 
         auto feedArea = lb;
-        feedbackSlider.setBounds(feedArea.removeFromLeft(w / 2));
-        delaySlider.setBounds(feedArea);
+        feedbackSlider.setBounds(feedArea.removeFromLeft(w / 2).reduced(margin));
+        delaySlider.setBounds(feedArea.reduced(margin));
 
     }
 
@@ -134,7 +154,7 @@ private:
 
     BandVUMeeter bandVu;
 
-    TextButton muteButton;
+    myDrawableButton muteButton;
     std::unique_ptr<ButtonAttachment> muteAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BandComponent)
@@ -147,6 +167,7 @@ public:
         bm(b),
         bandGraphComponent(p, b),
         modeButton("FB Mode"),
+        muteStartupButton("Mute on Startup"),
         warningMessage(p)
     {
         // In your constructor, you should add any child components, and
@@ -163,6 +184,7 @@ public:
         addAndMakeVisible(highOrderSlider);
         addAndMakeVisible(bandGraphComponent);
         addAndMakeVisible(modeButton);
+        addAndMakeVisible(muteStartupButton);
         addAndMakeVisible(drySlider);
         addAndMakeVisible(wetSlider);
         addAndMakeVisible(releaseSlider);
@@ -212,6 +234,7 @@ public:
         highOrderAttachment.reset(new SliderAttachment(vts, "HighOrder", highOrderSlider));
 
         modeAttachment.reset(new ButtonAttachment(vts, "Mode", modeButton.getButton()));
+        muteStartupAttachment.reset(new ButtonAttachment(vts, "MuteOnStartup", muteStartupButton.getButton()));
 
         dryAttachment.reset(new SliderAttachment(vts, "Dry", drySlider.getSlider()));
         wetAttachment.reset(new SliderAttachment(vts, "Wet", wetSlider.getSlider()));
@@ -223,6 +246,8 @@ public:
         // This method is where you should set the bounds of any child
         // components that your component contains..
         auto r = getLocalBounds();
+        const int margin = 4;
+        auto width = r.getWidth();
 
         warningMessage.setBounds(r.expanded(-r.getWidth()/6, -r.getHeight() / 6));
 
@@ -231,7 +256,7 @@ public:
 
         auto t = r.removeFromTop(100);
         auto w = t.getWidth() / 8;
-        auto stamp1 = t.removeFromLeft(w);
+        auto stamp1 = t.removeFromLeft(w).reduced(margin);
         auto smaller = stamp1.translated(w, 0);
         smaller.setWidth(w / 2);
         smaller.setHeight(w / 2);
@@ -251,19 +276,21 @@ public:
         modeButton.setBounds(stamp1);
 
         auto bottom = r.removeFromBottom(r.getHeight() / 4);
-        auto stamp = r.removeFromLeft(r.getWidth() / 4);
+        auto stamp = r.removeFromLeft(width / 4);
         for (int i = 0; i < 4; i++)
         {
             bands[i].setBounds(stamp);
-            stamp.translate(stamp.getWidth(), 0);
+            stamp.translate(width / 4, 0);
         }
 
         // bottom bar
-        stamp = bottom.removeFromLeft(bottom.getWidth() / 3);
+        stamp = bottom.removeFromLeft(width / 4);
+        muteStartupButton.setBounds(stamp);
+        stamp.translate(width / 4, 0);
         drySlider.setBounds(stamp);
-        stamp.translate(stamp.getWidth(), 0);
+        stamp.translate(width / 4, 0);
         wetSlider.setBounds(stamp);
-        stamp.translate(stamp.getWidth(), 0);
+        stamp.translate(width / 4, 0);
         releaseSlider.setBounds(stamp);
     }
 
@@ -271,9 +298,9 @@ private:
     BandModAudioProcessor& processor;
     BandMod& bm;
 
-    SliderAndLabel lowFreqSlider{ "LOWFREQ" },
-        midFreqSlider{ "MIDFREQ" },
-        highFreqSlider{ "HIGHFREQ" },
+    SliderAndLabel lowFreqSlider{ "LOW FREQ" },
+        midFreqSlider{ "MID FREQ" },
+        highFreqSlider{ "HIGH FREQ" },
         drySlider{ "DRY" },
         wetSlider{ "WET" },
         releaseSlider{ "RELEASE" };
@@ -281,7 +308,8 @@ private:
         midOrderSlider,
         highOrderSlider;
 
-    myButton modeButton;
+    myButton modeButton,
+        muteStartupButton;
 
     std::unique_ptr<SliderAttachment> lowFreqAttachment,
         midFreqAttachment,
@@ -293,7 +321,8 @@ private:
         wetAttachment,
         releaseAttachment;
         
-    std::unique_ptr<ButtonAttachment> modeAttachment;
+    std::unique_ptr<ButtonAttachment> modeAttachment,
+        muteStartupAttachment;
     BandComponent bands[4];
 
     BandGraphComponent bandGraphComponent;

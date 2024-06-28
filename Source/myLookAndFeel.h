@@ -15,8 +15,18 @@ class myLookAndFeel : public juce::LookAndFeel_V4
 public:
     myLookAndFeel();
 
+    void drawLinearSlider(Graphics&, int x, int y, int width, int height,
+        float sliderPos, float minSliderPos, float maxSliderPos,
+        Slider::SliderStyle, Slider&) override;
+
     void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
         const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider&) override;
+
+    void drawRegularSlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
+        const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider&);
+
+    void drawBipolarSlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
+        const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider&);
 
     /*
     void drawButtonBackground(Graphics& g,
