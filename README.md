@@ -2,7 +2,7 @@
 This plugin allows horrible things to happen when playing with feedback. Please experiment at safe volume levels.
 
 ## What is this
-Bandmod is a wacky multi-band distortion plugin some unique features:
+Bandmod is a wacky multi-band distortion plugin with some unique features:
 - FM: Modulate each band via a glitchy pitch tracking algorithm
 - Feedback: Loop a band's signal back into itself
 - Release: Gate the wet signal when the input goes below a threshold
