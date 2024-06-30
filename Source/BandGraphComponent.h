@@ -78,9 +78,10 @@ public:
         drawResponseCurves(g);
         
         // draw spectrogram
-        drawNextFrameOfSpectrum();
+        drawNextFrameOfSpectrum(g);
         //g.setColour(Colour(hue, 1.f, 1.f, 1.f));
         //float thue = hue;
+        /*
         g.setColour(Colour::fromFloatRGBA(1.f, 1.f, 1.f, .6f));
         for (int i = 1; i < BandModAudioProcessor::scopeSize; ++i)
         {
@@ -89,6 +90,7 @@ public:
                           (float)jmap(i,     0, BandModAudioProcessor::scopeSize - 1, 0, w),
                                   jmap(scopeData[i],     0.0f, 1.0f, (float)h, 0.0f) }, 2);
         }
+        */
 
         //double trash;
         //hue = modf(thue + .003, &trash);
@@ -134,7 +136,7 @@ private:
     juce::dsp::WindowingFunction<float> window;     // [5]
     float scopeData[BandModAudioProcessor::scopeSize];
     float nextScopeData[BandModAudioProcessor::scopeSize];
-
+    Path spectrumPath;
 
     // drawing stuff
     Image buffer;
@@ -197,11 +199,29 @@ private:
         g.drawRoundedRectangle(highRect, cornerSize, 2);
         g.setGradientFill(highGrad);
         g.fillRoundedRectangle(highRect, cornerSize);
-
     }
 
-    void drawNextFrameOfSpectrum()
+    inline float indexToX(float index, float minFreq) const
     {
+        const auto freq = (processor.getSampleRate() * index) / forwardFFT.getSize();
+        return (freq > 0.01f) ? std::log(freq / minFreq) / std::log(2.0f) : 0.0f;
+    }
+
+    inline float binToY(float bin, Rectangle<float> bounds) const
+    {
+        const float infinity = -80.0f;
+        return juce::jmap(juce::Decibels::gainToDecibels(bin, infinity) - Decibels::gainToDecibels((float)BandModAudioProcessor::fftSize),
+            infinity, 0.0f, 0.f, 1.0f);
+    }
+
+
+    void drawNextFrameOfSpectrum(Graphics& g)
+    {
+        Rectangle<float> lb = getLocalBounds().toFloat();
+        float bottom = lb.getBottom();
+        float top = lb.getY();
+        const auto factor = lb.getWidth() / 10.0f;
+
         const float smoothing = 0.7;
         // do smooth towards next scope data
         for (int i = 0; i < BandModAudioProcessor::scopeSize; ++i)                         // [3]
@@ -215,24 +235,30 @@ private:
         {
             juce::zeromem(fftData, sizeof(fftData));
             memcpy(fftData, processor.fftData, sizeof(processor.fftData));
+            processor.nextFFTBlockReady = false;
 
             window.multiplyWithWindowingTable(fftData, BandModAudioProcessor::fftSize);       // [1]
 
             // then render our FFT data..
             forwardFFT.performFrequencyOnlyForwardTransform(fftData);  // [2]
-            processor.nextFFTBlockReady = false;
-
+            
             //TODO: redo this in a not-stupid way
             for (int i = 0; i < BandModAudioProcessor::scopeSize; ++i)                         // [3]
             {
-                auto skewedProportionX = mapToLog10((float)i / (float)BandModAudioProcessor::scopeSize, 20.f, 20000.f) / ((float)processor.getSampleRate() / 2.f);
-                auto fftDataIndex = juce::jlimit(0, BandModAudioProcessor::fftSize / 2, (int)(skewedProportionX * (float)BandModAudioProcessor::fftSize * 0.5f));
-                auto level = juce::jmap(juce::jlimit(mindB, maxdB, juce::Decibels::gainToDecibels(fftData[fftDataIndex])
-                    - juce::Decibels::gainToDecibels((float)BandModAudioProcessor::fftSize)),
-                    mindB, maxdB, 0.0f, 1.0f);
-                nextScopeData[i] = level;
+                nextScopeData[i] = binToY(fftData[i], lb);
             }
         }
+
+        // actual drawing stuff
+        spectrumPath.clear();
+        spectrumPath.preallocateSpace(8 + BandModAudioProcessor::scopeSize * 3);
+        spectrumPath.startNewSubPath(lb.getX() + factor * indexToX(0, 20.f), jmap(scopeData[0], bottom, top));
+        for (int i = 0; i < BandModAudioProcessor::scopeSize; ++i)                         // [3]
+        {
+            spectrumPath.lineTo(lb.getX() + factor * indexToX(float(i), 20.f), jmap(scopeData[i], bottom, top));
+        }
+        g.setColour(Colour::fromFloatRGBA(1.f, 1.f, 1.f, .6f));
+        g.strokePath(spectrumPath.createPathWithRoundedCorners(5), PathStrokeType(2.0));
     }
     
     

@@ -21,7 +21,7 @@ public:
     {
         fftOrder = 12,             // [1]
         fftSize = 1 << fftOrder,  // [2]
-        scopeSize = 512             // [3]
+        scopeSize = fftSize/2             // [3]
     };
 
     //==============================================================================
@@ -62,7 +62,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     AudioProcessorValueTreeState apvts;
-    bool nextFFTBlockReady = false;
+    std::atomic<bool> nextFFTBlockReady = false;
 
     std::atomic<float> fftData[2 * fftSize];
     bool showWarning;
