@@ -34,11 +34,20 @@ public:
     void mouseWheelMove(const Mouse& mouse, const Wheel& wheel) override
     {
         auto newWheel = wheel;
+        
         const auto speed = mouse.mods.isCtrlDown() ? SensitiveWheel : NormalWheel;
         newWheel.deltaY *= speed;
 
         Slider::mouseWheelMove(mouse, newWheel);
+        
     }
+
+    void mouseDown(const MouseEvent& e) override
+    {
+        e.source.enableUnboundedMouseMovement(true);
+        Slider::mouseDown(e);
+    }
+    
 
 private:
     static constexpr float NormalWheel = .8f;
