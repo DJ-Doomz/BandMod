@@ -15,7 +15,7 @@
 //==============================================================================
 /**
 */
-class BandModAudioProcessorEditor  : public juce::AudioProcessorEditor
+class BandModAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
 {
 public:
     BandModAudioProcessorEditor (BandModAudioProcessor&, juce::AudioProcessorValueTreeState& , BandMod&);
@@ -24,6 +24,8 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+
+    void timerCallback() override { repaint(); }
 
 private:
     // This reference is provided as a quick way for your editor to

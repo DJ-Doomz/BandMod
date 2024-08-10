@@ -22,10 +22,13 @@ BandModAudioProcessorEditor::BandModAudioProcessorEditor (BandModAudioProcessor&
     setResizeLimits(300, 300, 2000, 2000);
     BMC.addAttachment(vts);
     LookAndFeel::setDefaultLookAndFeel(&myLnF);
+
+    startTimerHz(120);
 }
 
 BandModAudioProcessorEditor::~BandModAudioProcessorEditor()
 {
+    stopTimer();
 }
 
 //==============================================================================

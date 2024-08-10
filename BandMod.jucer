@@ -55,10 +55,11 @@
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
-    <VS2022 targetFolder="Builds/VisualStudio2022">
+    <VS2022 targetFolder="Builds/VisualStudio2022" extraCompilerFlags="/D _DISABLE_VECTOR_ANNOTATION /D _DISABLE_STRING_ANNOTATION ">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="BandMod"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="BandMod"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="BandMod" alwaysGenerateDebugSymbols="1"
+                       debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="G:/Users/no one/Desktop/Stuff 2.0/Juce_new/JUCE/modules"/>

@@ -88,7 +88,6 @@ public:
         lg.addColour(0.5, Colours::white);
         g.setGradientFill(lg);
         g.drawLine(w, 0, w, h, 2);
-
     }
 
     void resized() override

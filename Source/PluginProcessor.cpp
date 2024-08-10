@@ -24,13 +24,13 @@ AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         auto fmpitchname = String("fmPitch") + stri;
         auto mutebandname = String("muteBand") + stri;
         auto delaytimename = String("delaytime") + stri;
-        layout.add(std::make_unique<juce::AudioParameterFloat>(fmname, fmname, juce::NormalisableRange<float>(0, 1000, 0), 0.0f));
-        layout.add(std::make_unique<juce::AudioParameterFloat>(prename, prename, juce::NormalisableRange<float>(1, 1000, 0, .1), 1.0f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(fmname, fmname, juce::NormalisableRange<float>(0, 1000, 0, .3), 0.0f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(prename, prename, juce::NormalisableRange<float>(1, 1000, 0, .3), 1.0f));
         layout.add(std::make_unique<juce::AudioParameterFloat>(postname, postname, juce::NormalisableRange<float>(0, 2, 0), 1.0f));
         layout.add(std::make_unique<juce::AudioParameterFloat>(feedbkname, feedbkname, juce::NormalisableRange<float>(-1.1, 1.1, 0), 0.0f));
         layout.add(std::make_unique<juce::AudioParameterFloat>(fmpitchname, fmpitchname, juce::NormalisableRange<float>(0, 1, 0), 0.5f));
         layout.add(std::make_unique<juce::AudioParameterBool>(mutebandname, mutebandname, false));
-        layout.add(std::make_unique<juce::AudioParameterFloat>(delaytimename, delaytimename, juce::NormalisableRange<float>(0, 1, 0), 0.f));
+        layout.add(std::make_unique<juce::AudioParameterFloat>(delaytimename, delaytimename, juce::NormalisableRange<float>(0, 1, 0, 0.3), 0.f));
         
     }
     // band frequencies
@@ -324,8 +324,15 @@ void BandModAudioProcessor::setStateInformation (const void* data, int sizeInByt
 }
 
 //==============================================================================
+void myterminate() {
+    std::cerr << "terminate handler called\n";
+    juce::NativeMessageBox::showOkCancelBox(juce::MessageBoxIconType::InfoIcon, "ERROR", "wtf", nullptr, nullptr);
+    abort();  // forces abnormal termination
+}
+
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
+    std::set_terminate(myterminate);
     return new BandModAudioProcessor();
 }
